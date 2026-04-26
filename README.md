@@ -1,4 +1,4 @@
-# 🎓 JurusanFinder — Sistem Pakar Rekomendasi Jurusan Kuliah
+# Sistem Pakar Rekomendasi Jurusan Kuliah
 
 Sistem rekomendasi jurusan kuliah berbasis **Sistem Pakar (Expert System)** dengan metode **Forward Chaining** dan antarmuka web statis bergaya quiz interaktif.
 
@@ -7,15 +7,18 @@ Sistem rekomendasi jurusan kuliah berbasis **Sistem Pakar (Expert System)** deng
 ## 🗒️ Identitas
 
 **Nama:** Sani Aprillia Anjani
+
 **NIM:** H1D024011
+
 **Shift Awal:** H
+
 **Shift Akhir:** E
 
 ---
 
 ## 🧠 Tentang Sistem
 
-JurusanFinder menggunakan metode **Forward Chaining** berbasis bobot untuk mencocokkan profil minat & kepribadian pengguna dengan knowledge base jurusan kuliah. Sistem mengajukan 10 pertanyaan adaptif, mengakumulasi skor pada 7 dimensi minat, lalu menghitung persentase kecocokan terhadap setiap jurusan.
+Sistem ini menggunakan metode **Forward Chaining** berbasis bobot untuk mencocokkan profil minat & kepribadian pengguna dengan knowledge base jurusan kuliah. Sistem mengajukan 10 pertanyaan adaptif, mengakumulasi skor pada 7 dimensi minat, lalu menghitung persentase kecocokan terhadap setiap jurusan.
 
 ### Variabel Dimensi Minat
 
