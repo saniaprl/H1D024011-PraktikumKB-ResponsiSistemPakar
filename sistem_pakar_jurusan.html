@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Pakar Rekomendasi Jurusan</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-50: #e8eeff;
+    --blue-200: #a5b8f8;
+    --blue-400: #5a7af0;
+    --blue-600: #3a56d4;
+    --blue-800: #1e3499;
+    --purple-50: #f0edff;
+    --purple-200: #c4b8f8;
+    --purple-400: #8b6ee8;
+    --purple-600: #6447c8;
+    --purple-800: #3d2a8a;
+    --white: #ffffff;
+    --gray-50: #f8f9ff;
+    --gray-100: #eef0f8;
+    --gray-300: #c4c8de;
+    --gray-500: #7880a4;
+    --gray-700: #3d4266;
+    --gray-900: #181b33;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: linear-gradient(135deg, #e8eeff 0%, #f0edff 40%, #f5f0ff 70%, #eaf0ff 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    color: var(--gray-900);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--blue-400), var(--purple-400));
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 99px;
+    margin-bottom: 1rem;
+  }
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--blue-800), var(--purple-600));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .header p {
+    color: var(--gray-500);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(160,140,240,0.18);
+    box-shadow: 0 4px 40px rgba(90,122,240,0.08), 0 1px 0 rgba(255,255,255,0.8) inset;
+    overflow: hidden;
+  }
+
+  .progress-wrap {
+    padding: 1.5rem 2rem 0;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue-400), var(--purple-400));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .screen { display: none; padding: 2rem; }
+  .screen.active { display: block; }
+
+  /* WELCOME SCREEN */
+  .welcome-icon {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--blue-50), var(--purple-50));
+    border-radius: 20px;
+    border: 1px solid rgba(139,110,232,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 1.5rem;
+  }
+  .welcome-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+  .welcome-desc {
+    color: var(--gray-500);
+    text-align: center;
+    font-size: 14.5px;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+  .info-pills {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .info-pill {
+    background: var(--gray-100);
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: var(--gray-700);
+    font-weight: 500;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .question-num {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--purple-400);
+    margin-bottom: 0.5rem;
+  }
+  .question-text {
+    font-family: 'Fraunces', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+  .question-hint {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-bottom: 1.75rem;
+    line-height: 1.5;
+  }
+  .answer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .answer-btn {
+    background: var(--white);
+    border: 1.5px solid var(--gray-100);
+    border-radius: 16px;
+    padding: 1.25rem 1rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .answer-btn:hover {
+    border-color: var(--blue-200);
+    background: var(--blue-50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(90,122,240,0.12);
+  }
+  .answer-btn.selected {
+    border-color: var(--blue-400);
+    background: linear-gradient(135deg, var(--blue-50), var(--purple-50));
+    box-shadow: 0 0 0 3px rgba(90,122,240,0.12);
+  }
+  .answer-btn.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px; right: 12px;
+    width: 22px; height: 22px;
+    background: linear-gradient(135deg, var(--blue-400), var(--purple-400));
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: center;
+  }
+  .answer-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .answer-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .answer-sub {
+    font-size: 12px;
+    color: var(--gray-500);
+    display: block;
+    line-height: 1.4;
+  }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.75rem;
+    gap: 12px;
+  }
+
+  .btn {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue-400), var(--purple-400));
+    color: white;
+    box-shadow: 0 4px 16px rgba(90,122,240,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(90,122,240,0.4);
+  }
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-secondary {
+    background: var(--white);
+    color: var(--gray-700);
+    border: 1.5px solid var(--gray-300);
+  }
+  .btn-secondary:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-300);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--gray-500);
+    padding: 12px 0;
+  }
+  .btn-ghost:hover { color: var(--gray-700); }
+  .btn-full { width: 100%; justify-content: center; }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .result-trophy {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 0.75rem;
+    animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes pop {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .result-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+  }
+  .result-jurusan {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--blue-800), var(--purple-600));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+  }
+
+  .result-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gray-500);
+    margin-bottom: 1rem;
+  }
+  .top-recs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 1.75rem;
+  }
+  .rec-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-100);
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: all 0.2s;
+  }
+  .rec-card.rank-1 {
+    border-color: var(--blue-200);
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--purple-50) 100%);
+  }
+  .rec-card.rank-1 .rec-rank {
+    background: linear-gradient(135deg, var(--blue-400), var(--purple-400));
+    color: white;
+  }
+  .rec-rank {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: var(--gray-100);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-500);
+    flex-shrink: 0;
+  }
+  .rec-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .rec-info { flex: 1; min-width: 0; }
+  .rec-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 2px;
+  }
+  .rec-desc {
+    font-size: 12px;
+    color: var(--gray-500);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rec-score-wrap { text-align: right; flex-shrink: 0; }
+  .rec-score {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--blue-600);
+  }
+  .rec-score-label {
+    font-size: 10px;
+    color: var(--gray-500);
+    display: block;
+  }
+
+  .score-bars { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.75rem; }
+  .score-row { display: flex; align-items: center; gap: 10px; }
+  .score-lbl { font-size: 12.5px; color: var(--gray-700); font-weight: 500; width: 130px; flex-shrink: 0; }
+  .score-bar-bg { flex: 1; height: 8px; background: var(--gray-100); border-radius: 99px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue-400), var(--purple-400)); transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+  .score-val { font-size: 12px; font-weight: 600; color: var(--gray-700); width: 28px; text-align: right; }
+
+  .profile-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
+  .tag {
+    background: var(--purple-50);
+    color: var(--purple-600);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 99px;
+    border: 1px solid rgba(139,110,232,0.2);
+  }
+
+  .divider { height: 1px; background: var(--gray-100); margin: 0 -2rem 1.5rem; }
+
+  .skip-row { text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-badge">✦ Sistem Pakar</div>
+    <h1>Temukan Jurusanmu</h1>
+    <p>Jawab beberapa pertanyaan singkat untuk mendapat rekomendasi jurusan kuliah yang paling sesuai denganmu.</p>
+  </div>
+
+  <div class="card" id="mainCard">
+
+    <div class="progress-wrap" id="progressWrap" style="display:none">
+      <div class="progress-meta">
+        <span id="progressLabel">Pertanyaan 1 dari 10</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="screen active" id="screenWelcome">
+      <div class="welcome-icon">🎓</div>
+      <div class="welcome-title">Tes Minat & Bakat Jurusan</div>
+      <div class="welcome-desc">
+        Sistem Pakar ini akan menganalisis preferensi, minat, dan kepribadianmu untuk merekomendasikan program studi yang paling cocok. Tidak ada jawaban salah — pilih yang paling menggambarkan dirimu!
+      </div>
+      <div class="info-pills">
+        <div class="info-pill">📝 10 pertanyaan</div>
+        <div class="info-pill">⏱ ~3 menit</div>
+        <div class="info-pill">🎯 Berbasis aturan pakar</div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="startQuiz()">
+        Mulai Tes Sekarang →
+      </button>
+    </div>
+
+    <div class="screen" id="screenQuestion">
+      <div class="question-num" id="questionNum">Pertanyaan 1</div>
+      <div class="question-text" id="questionText"></div>
+      <div class="question-hint" id="questionHint"></div>
+      <div class="answer-grid" id="answerGrid"></div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="btnBack" onclick="prevQuestion()">← Kembali</button>
+        <div class="skip-row">
+          <button class="btn btn-ghost" onclick="skipQuestion()" id="btnSkip" style="font-size:13px; color: var(--gray-500)">Lewati</button>
+        </div>
+        <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()" disabled>
+          Lanjut →
+        </button>
+      </div>
+    </div>
+
+    <div class="screen" id="screenResult">
+      <div class="result-header">
+        <span class="result-trophy" id="resultTrophy">🏆</span>
+        <div class="result-title">Rekomendasi Jurusan Terbaikmu</div>
+        <div class="result-jurusan" id="resultJurusan">—</div>
+      </div>
+
+      <div class="result-section-title">Peringkat Rekomendasi</div>
+      <div class="top-recs" id="topRecs"></div>
+
+      <div class="divider"></div>
+
+      <div class="result-section-title">Skor Dimensi Minatmu</div>
+      <div class="score-bars" id="scoreBars"></div>
+
+      <div class="divider"></div>
+
+      <div class="result-section-title">Profil Kepribadianmu</div>
+      <div class="profile-tags" id="profileTags"></div>
+
+      <button class="btn btn-secondary btn-full" onclick="resetQuiz()" style="margin-top:0.5rem">
+        🔄 Ulangi Tes
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const pertanyaan = [
+  {
+    teks: "Ketika menghadapi masalah, kamu lebih suka…",
+    hint: "Pilih yang paling menggambarkan cara berpikirmu",
+    opsi: [
+      { icon: "🧮", label: "Menghitung & Menganalisis", sub: "Mencari pola & solusi logis", bobot: { matematika: 3, analitik: 2 } },
+      { icon: "🎨", label: "Berkreasi & Mendesain", sub: "Membuat solusi visual kreatif", bobot: { kreatif: 3, estetika: 2 } },
+      { icon: "🗣️", label: "Berdiskusi & Bernegosiasi", sub: "Menyelesaikan lewat komunikasi", bobot: { sosial: 3, komunikasi: 2 } },
+      { icon: "⚙️", label: "Merancang Sistem", sub: "Membangun mekanisme / proses", bobot: { teknologi: 3, analitik: 1 } }
+    ]
+  },
+  {
+    teks: "Mata pelajaran favorit semasa sekolah?",
+    hint: "Pilih yang paling kamu nikmati",
+    opsi: [
+      { icon: "📐", label: "Matematika & Fisika", sub: "Hitungan, rumus, logika", bobot: { matematika: 3, analitik: 2, teknologi: 1 } },
+      { icon: "🖌️", label: "Seni & Kerajinan", sub: "Gambar, desain, prakarya", bobot: { kreatif: 3, estetika: 3 } },
+      { icon: "📚", label: "Bahasa & Sastra", sub: "Menulis, membaca, berdebat", bobot: { komunikasi: 3, sosial: 1 } },
+      { icon: "💻", label: "TIK & Komputer", sub: "Coding, internet, teknologi", bobot: { teknologi: 3, analitik: 1, matematika: 1 } }
+    ]
+  },
+  {
+    teks: "Di waktu luang, kamu paling sering melakukan?",
+    hint: "Pilih aktivitas yang paling sering kamu lakukan",
+    opsi: [
+      { icon: "🔬", label: "Eksperimen & Riset", sub: "Mencoba hal baru, bereksperimen", bobot: { analitik: 3, matematika: 1, teknologi: 1 } },
+      { icon: "🎭", label: "Berkarya Seni", sub: "Gambar, musik, fotografi, desain", bobot: { kreatif: 3, estetika: 2 } },
+      { icon: "🤝", label: "Sosialisasi", sub: "Nongkrong, organisasi, acara", bobot: { sosial: 3, komunikasi: 2 } },
+      { icon: "🎮", label: "Main Game / Tech", sub: "Gaming, programming, gadget", bobot: { teknologi: 3, analitik: 1 } }
+    ]
+  },
+  {
+    teks: "Dalam kelompok, peranmu biasanya?",
+    hint: "Yang paling sering terjadi secara alami",
+    opsi: [
+      { icon: "📊", label: "Analis Data", sub: "Mengolah info, buat laporan", bobot: { analitik: 3, matematika: 2 } },
+      { icon: "🖼️", label: "Desainer Visual", sub: "Bikin presentasi & tampilan", bobot: { kreatif: 3, estetika: 2 } },
+      { icon: "📢", label: "Juru Bicara", sub: "Presentasi & komunikasi ke luar", bobot: { komunikasi: 3, sosial: 2 } },
+      { icon: "🛠️", label: "Problem Solver Teknis", sub: "Atasi masalah teknis kelompok", bobot: { teknologi: 3, analitik: 1 } }
+    ]
+  },
+  {
+    teks: "Kamu lebih tertarik pada karier di bidang?",
+    hint: "Bayangkan pekerjaan idealmu 10 tahun ke depan",
+    opsi: [
+      { icon: "💰", label: "Keuangan & Bisnis", sub: "Akuntansi, perbankan, investasi", bobot: { matematika: 3, analitik: 2 } },
+      { icon: "🎨", label: "Industri Kreatif", sub: "Desainer, animator, content creator", bobot: { kreatif: 3, estetika: 3 } },
+      { icon: "👥", label: "Pelayanan & Sosial", sub: "HR, konsultan, public relations", bobot: { sosial: 3, komunikasi: 3 } },
+      { icon: "💻", label: "Teknologi & Digital", sub: "Developer, data scientist, IT", bobot: { teknologi: 3, matematika: 1, analitik: 2 } }
+    ]
+  },
+  {
+    teks: "Saat melihat sesuatu yang baru, kamu cenderung?",
+    hint: "Reaksi pertama yang paling spontan",
+    opsi: [
+      { icon: "🔢", label: "Mencari polanya", sub: "Menganalisis angka & data", bobot: { analitik: 3, matematika: 2 } },
+      { icon: "💡", label: "Membayangkan tampilannya", sub: "Visualisasi desain & estetika", bobot: { estetika: 3, kreatif: 2 } },
+      { icon: "💬", label: "Ingin tahu ceritanya", sub: "Menggali latar belakang & narasi", bobot: { komunikasi: 2, sosial: 2 } },
+      { icon: "⚡", label: "Ingin tahu cara kerjanya", sub: "Mekanisme & teknologi di baliknya", bobot: { teknologi: 3, analitik: 2 } }
+    ]
+  },
+  {
+    teks: "Proyek impianmu adalah?",
+    hint: "Pilih yang paling menarik untukmu",
+    opsi: [
+      { icon: "📈", label: "Analisis Pasar Global", sub: "Riset tren ekonomi & prediksi", bobot: { matematika: 2, analitik: 3 } },
+      { icon: "🖼️", label: "Pameran Karya Seni", sub: "Pameran desain, foto, atau seni", bobot: { kreatif: 3, estetika: 3 } },
+      { icon: "🎤", label: "Campaign Sosial", sub: "Gerakkan masyarakat lewat konten", bobot: { komunikasi: 3, sosial: 3 } },
+      { icon: "🚀", label: "Aplikasi Digital", sub: "Bangun startup atau platform tech", bobot: { teknologi: 3, analitik: 2, matematika: 1 } }
+    ]
+  },
+  {
+    teks: "Lingkungan kerja seperti apa yang kamu inginkan?",
+    hint: "Suasana kerja yang membuatmu paling produktif",
+    opsi: [
+      { icon: "🏢", label: "Kantor Formal & Terstruktur", sub: "Proses jelas, data-driven", bobot: { matematika: 2, analitik: 2 } },
+      { icon: "🏡", label: "Studio Kreatif Santai", sub: "Eksplorasi ide bebas tanpa batas", bobot: { kreatif: 3, estetika: 2 } },
+      { icon: "🌐", label: "Dinamis & Penuh Interaksi", sub: "Banyak meeting, kolaborasi", bobot: { sosial: 3, komunikasi: 2 } },
+      { icon: "💾", label: "Lab / Server Room", sub: "Deep work, fokus teknis", bobot: { teknologi: 3, analitik: 2 } }
+    ]
+  },
+  {
+    teks: "Kamu paling bangga jika berhasil?",
+    hint: "Pencapaian yang paling memuaskanmu",
+    opsi: [
+      { icon: "🏆", label: "Menyelesaikan soal sulit", sub: "Masalah kompleks terpecahkan", bobot: { matematika: 3, analitik: 3 } },
+      { icon: "🎖️", label: "Karya diakui publik", sub: "Desain/karya mendapat respons", bobot: { kreatif: 3, estetika: 2 } },
+      { icon: "🌟", label: "Membantu orang lain", sub: "Dampak positif bagi sesama", bobot: { sosial: 3, komunikasi: 2 } },
+      { icon: "⚡", label: "Sistem berjalan sempurna", sub: "Teknologi berfungsi flawless", bobot: { teknologi: 3, analitik: 2 } }
+    ]
+  },
+  {
+    teks: "Dari pernyataan berikut, yang paling menggambarkan dirimu?",
+    hint: "Pilih yang paling jujur mencerminkan dirimu",
+    opsi: [
+      { icon: "🧠", label: "\"Saya suka angka dan logika\"", sub: "Berpikir sistematis & rasional", bobot: { matematika: 3, analitik: 2 } },
+      { icon: "🎨", label: "\"Saya punya selera estetika tinggi\"", sub: "Peka terhadap keindahan & desain", bobot: { estetika: 3, kreatif: 2 } },
+      { icon: "🗣️", label: "\"Saya mudah bergaul & komunikatif\"", sub: "Suka bertemu orang baru", bobot: { sosial: 3, komunikasi: 3 } },
+      { icon: "💻", label: "\"Saya tech-savvy & suka eksplorasi\"", sub: "Selalu update teknologi terbaru", bobot: { teknologi: 3, analitik: 1 } }
+    ]
+  }
+];
+
+const jurusan = [
+  {
+    nama: "Teknik Informatika",
+    icon: "💻",
+    desc: "Programming, algoritma, pengembangan software & sistem",
+    syarat: { teknologi: 6, matematika: 4 },
+    tags: ["Logis", "Tech-savvy", "Problem Solver"],
+    warna: "#5a7af0"
+  },
+  {
+    nama: "Sistem Informasi",
+    icon: "🖥️",
+    desc: "Jembatan bisnis & teknologi, manajemen data & sistem",
+    syarat: { teknologi: 4, analitik: 4, sosial: 2 },
+    tags: ["Analitis", "Komunikatif", "Teknis"],
+    warna: "#7b5ea7"
+  },
+  {
+    nama: "Desain Komunikasi Visual",
+    icon: "🎨",
+    desc: "Desain grafis, branding, media visual, UI/UX",
+    syarat: { kreatif: 6, estetika: 5 },
+    tags: ["Kreatif", "Visual", "Artistik"],
+    warna: "#e8518f"
+  },
+  {
+    nama: "Desain Produk",
+    icon: "🛠️",
+    desc: "Industrial design, product design, ergonomi & inovasi",
+    syarat: { kreatif: 4, estetika: 3, analitik: 3 },
+    tags: ["Inovatif", "Teknis", "Kreatif"],
+    warna: "#f06b3f"
+  },
+  {
+    nama: "Manajemen Bisnis",
+    icon: "📊",
+    desc: "Strategi, operasional, keuangan, kepemimpinan organisasi",
+    syarat: { analitik: 5, sosial: 4 },
+    tags: ["Pemimpin", "Strategis", "Analitis"],
+    warna: "#2ea87e"
+  },
+  {
+    nama: "Ilmu Komunikasi",
+    icon: "🗣️",
+    desc: "Jurnalistik, public relations, broadcasting, media",
+    syarat: { komunikasi: 6, sosial: 5 },
+    tags: ["Komunikatif", "Ekspresif", "Sosial"],
+    warna: "#e8a430"
+  },
+  {
+    nama: "Psikologi",
+    icon: "🧠",
+    desc: "Perilaku manusia, konseling, pengembangan SDM",
+    syarat: { sosial: 6, komunikasi: 4 },
+    tags: ["Empati", "Sosial", "Analitis"],
+    warna: "#9c59d1"
+  },
+  {
+    nama: "Matematika / Statistika",
+    icon: "📐",
+    desc: "Pure math, data science, aktuaria, riset kuantitatif",
+    syarat: { matematika: 7, analitik: 5 },
+    tags: ["Logis", "Presisi", "Peneliti"],
+    warna: "#3a7bd5"
+  },
+  {
+    nama: "Teknik Elektro",
+    icon: "⚡",
+    desc: "Elektronika, sistem tenaga, IoT, robotika",
+    syarat: { teknologi: 5, matematika: 5 },
+    tags: ["Teknis", "Inovatif", "Analitis"],
+    warna: "#e8952a"
+  },
+  {
+    nama: "Hubungan Internasional",
+    icon: "🌍",
+    desc: "Diplomasi, politik global, hukum internasional",
+    syarat: { komunikasi: 5, sosial: 6 },
+    tags: ["Diplomatik", "Wawasan Luas", "Komunikatif"],
+    warna: "#26a69a"
+  }
+];
+
+function hitungSkor(bobotUser, syarat) {
+  let match = 0;
+  let total = Object.values(syarat).reduce((a,b)=>a+b, 0);
+  for (const [dim, val] of Object.entries(syarat)) {
+    const userVal = bobotUser[dim] || 0;
+    match += Math.min(userVal, val);
+  }
+  return total > 0 ? (match / total) * 100 : 0;
+}
+
+function rekomendasikan(bobotUser) {
+  const hasil = jurusan.map(j => ({
+    ...j,
+    skor: Math.round(hitungSkor(bobotUser, j.syarat))
+  }));
+  hasil.sort((a, b) => b.skor - a.skor);
+  return hasil;
+}
+
+let state = {
+  currentQ: 0,
+  answers: [],  // array of jawaban index atau null
+  bobot: {}
+};
+
+function startQuiz() {
+  state = { currentQ: 0, answers: new Array(pertanyaan.length).fill(null), bobot: {} };
+  showScreen('screenQuestion');
+  document.getElementById('progressWrap').style.display = 'block';
+  renderQuestion();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateProgress() {
+  const answered = state.answers.filter(a => a !== null).length;
+  const pct = Math.round((state.currentQ / pertanyaan.length) * 100);
+  document.getElementById('progressLabel').textContent = `Pertanyaan ${state.currentQ + 1} dari ${pertanyaan.length}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function renderQuestion() {
+  const q = pertanyaan[state.currentQ];
+  document.getElementById('questionNum').textContent = `Pertanyaan ${state.currentQ + 1}`;
+  document.getElementById('questionText').textContent = q.teks;
+  document.getElementById('questionHint').textContent = q.hint;
+
+  const grid = document.getElementById('answerGrid');
+  grid.innerHTML = '';
+
+  const savedAns = state.answers[state.currentQ];
+
+  q.opsi.forEach((opsi, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn' + (savedAns === i ? ' selected' : '');
+    btn.innerHTML = `
+      <span class="answer-icon">${opsi.icon}</span>
+      <span class="answer-label">${opsi.label}</span>
+      <span class="answer-sub">${opsi.sub}</span>
+    `;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('btnBack').style.visibility = state.currentQ === 0 ? 'hidden' : 'visible';
+  document.getElementById('btnNext').disabled = savedAns === null;
+  updateProgress();
+}
+
+function selectAnswer(i) {
+  state.answers[state.currentQ] = i;
+  document.querySelectorAll('.answer-btn').forEach((btn, idx) => {
+    btn.classList.toggle('selected', idx === i);
+  });
+  document.getElementById('btnNext').disabled = false;
+}
+
+function nextQuestion() {
+  if (state.currentQ < pertanyaan.length - 1) {
+    state.currentQ++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if (state.currentQ > 0) {
+    state.currentQ--;
+    renderQuestion();
+  }
+}
+
+function skipQuestion() {
+  state.answers[state.currentQ] = null;
+  nextQuestion();
+}
+
+function showResult() {
+  const bobot = {};
+  pertanyaan.forEach((q, qi) => {
+    const ans = state.answers[qi];
+    if (ans === null) return;
+    const opsi = q.opsi[ans];
+    for (const [dim, val] of Object.entries(opsi.bobot)) {
+      bobot[dim] = (bobot[dim] || 0) + val;
+    }
+  });
+  state.bobot = bobot;
+
+  const hasil = rekomendasikan(bobot);
+  const top = hasil[0];
+
+  document.getElementById('progressWrap').style.display = 'none';
+  showScreen('screenResult');
+
+  const trophyMap = {
+    "Teknik Informatika": "💻", "Sistem Informasi": "🖥️",
+    "Desain Komunikasi Visual": "🎨", "Desain Produk": "🛠️",
+    "Manajemen Bisnis": "📊", "Ilmu Komunikasi": "🗣️",
+    "Psikologi": "🧠", "Matematika / Statistika": "📐",
+    "Teknik Elektro": "⚡", "Hubungan Internasional": "🌍"
+  };
+  document.getElementById('resultTrophy').textContent = trophyMap[top.nama] || '🏆';
+  document.getElementById('resultJurusan').textContent = top.nama;
+
+  const topRecs = document.getElementById('topRecs');
+  topRecs.innerHTML = '';
+  hasil.slice(0, 5).forEach((j, i) => {
+    const div = document.createElement('div');
+    div.className = 'rec-card rank-' + (i + 1);
+    div.innerHTML = `
+      <div class="rec-rank">${i + 1}</div>
+      <div class="rec-icon">${j.icon}</div>
+      <div class="rec-info">
+        <div class="rec-name">${j.nama}</div>
+        <div class="rec-desc">${j.desc}</div>
+      </div>
+      <div class="rec-score-wrap">
+        <div class="rec-score">${j.skor}%</div>
+        <span class="rec-score-label">cocok</span>
+      </div>
+    `;
+    topRecs.appendChild(div);
+  });
+
+  const dimLabels = {
+    matematika: "Matematika & Logika",
+    analitik: "Analitik",
+    kreatif: "Kreativitas",
+    estetika: "Estetika",
+    teknologi: "Teknologi",
+    komunikasi: "Komunikasi",
+    sosial: "Sosial"
+  };
+  const maxBobot = Math.max(...Object.values(bobot), 1);
+  const scoreBars = document.getElementById('scoreBars');
+  scoreBars.innerHTML = '';
+  Object.entries(dimLabels).forEach(([key, label]) => {
+    const val = bobot[key] || 0;
+    const pct = Math.round((val / maxBobot) * 100);
+    const div = document.createElement('div');
+    div.className = 'score-row';
+    div.innerHTML = `
+      <div class="score-lbl">${label}</div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:0%" data-pct="${pct}"></div></div>
+      <div class="score-val">${pct}%</div>
+    `;
+    scoreBars.appendChild(div);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.score-bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.pct + '%';
+    });
+  }, 100);
+
+  const topDims = Object.entries(bobot).sort((a,b)=>b[1]-a[1]).slice(0, 3).map(d=>d[0]);
+  const tagMap = {
+    matematika: "Logis & Analitis", analitik: "Pemikir Kritis",
+    kreatif: "Kreatif", estetika: "Peka Estetika",
+    teknologi: "Tech-Savvy", komunikasi: "Komunikatif", sosial: "People Person"
+  };
+  const profileTags = document.getElementById('profileTags');
+  profileTags.innerHTML = '';
+  [...top.tags, ...topDims.map(d => tagMap[d])].filter((v,i,a)=>a.indexOf(v)===i).slice(0,5).forEach(tag => {
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.textContent = tag;
+    profileTags.appendChild(span);
+  });
+}
+
+function resetQuiz() {
+  document.getElementById('progressWrap').style.display = 'none';
+  showScreen('screenWelcome');
+}
+</script>
+</body>
+</html>
